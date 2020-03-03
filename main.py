@@ -1,5 +1,6 @@
 import bs4, requests
 import collections
+import pdfkit
 
 class Element:
 
@@ -19,8 +20,7 @@ class Element:
 class Title(Element):
 
     def getformat(self):
-        #write some format after setting up pdf printer
-        return "Title format"
+        return {"front-tag": "<h1>", "end-tag": "</h1>"}
 
     def __str__(self):
         return "Title"
@@ -29,8 +29,7 @@ class Title(Element):
 class Description(Element):
 
     def getformat(self):
-        #write some format after setting up pdf printer
-        return "Description format"
+        return {"front-tag": "<p>", "end-tag": "</p>"}
 
     def __str__(self):
         return "Description"
@@ -38,12 +37,22 @@ class Description(Element):
 
 class Image(Element):
 
+    __urlimg = None
+
+    def __init__(self, part_of_news):
+        super().__init__("")
+        self.__urlimg = part_of_news
+
+
     def getformat(self):
-        #write some format after setting up pdf printer
-        return "Image format"
+        return {"front-tag": "<img src=" + self.getimgurl() + " >", "end-tag": ""}
+
+    def getimgurl(self):
+        return self.__urlimg
 
     def __str__(self):
         return "Image"
+
 
 class Connection:
 
@@ -109,34 +118,49 @@ class CDANewsExtractor:
                                                                                                 self.__getallimages())]
 
 
-class RaportPDFGenerator:
+class HTMLWriter:
 
     __collections_to_print = None
+    __filename = None
 
-    def __init__(self, collections):
+    def __init__(self, collections, filename):
         self.__collections_to_print = collections
+        self.__filename = filename
 
-    def test_print_collection(self):
-        for News in self.__collections_to_print:
-            for element in News:
-                try:
-                    print(str(element))
-                except:
-                    pass
-                print("\n")
-                print(element.getcontent())
-                print("\n\n")
-                print(element.getformat())
-                print("\n\n ############### \n\n")
+    def create_htmlcode(self):
+        with open(self.__filename, "w") as pdf:
+            pdf.write("<!DOCTYPE html> \n <html> \n <head></head> \n <body> \n")
+            for part in self.__collections_to_print:
+                pdf.write("<br><br><br>")
+                for element in part:
+                    pdf.write(element.getformat()["front-tag"] + element.getcontent() +
+                              element.getformat()["end-tag"] + "<br>" + "\n")
+            pdf.write("</body> \n </html>")
 
+
+class PDFGenerator:
+    __input = None
+    __output = None
+
+    def __init__(self, inputfile, outputfile):
+        self.__input = inputfile
+        self.__output = outputfile
+
+    def create_pdf(self):
+        with open(self.__input, "r") as html:
+            pdfkit.from_file(html, self.__output)
 
 
 def main():
     request = Connection("https://www.cdaction.pl/")
     parser = Parser(request)
     CDA = CDANewsExtractor(parser)
-    CDA_Raport = RaportPDFGenerator(CDA.getsplitednews())
-    CDA_Raport.test_print_collection()
+    CDA_Raport = HTMLWriter(CDA.getsplitednews(), "file.html")
+    CDA_Raport.create_htmlcode()
+    CDA_PDF = PDFGenerator("file.html", "file.pdf")
+    CDA_PDF.create_pdf()
+
+
 
 
 if __name__ == "__main__":
