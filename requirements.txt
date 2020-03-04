@@ -1,3 +1,14 @@
 bs4
 requests
-pdfkit
+
+Pillow
+coverage
+html5lib
+nose
+pyPdf2
+reportlab
+six
+Sphinx
+sphinx-rtd-theme
+
+xhtml2pdf

@@ -1,6 +1,6 @@
 import bs4, requests
 import collections
-import pdfkit
+from xhtml2pdf import pisa
 
 class Element:
 
@@ -122,14 +122,22 @@ class HTMLWriter:
 
     __collections_to_print = None
     __filename = None
+    __head_attr = []
 
     def __init__(self, collections, filename):
         self.__collections_to_print = collections
         self.__filename = filename
 
+    def add_utf8(self):
+        if self.__head_attr.count('<meta charset="UTF-8">\n'):
+            print("UTF-8 already added. Skipping!")
+        else:
+            self.__head_attr.append('<meta charset="UTF-8">\n')
+            print("UTF-8 added!")
+
     def create_htmlcode(self):
-        with open(self.__filename, "w") as pdf:
-            pdf.write("<!DOCTYPE html> \n <html> \n <head></head> \n <body> \n")
+        with open(self.__filename, "w", encoding='utf-8') as pdf:
+            pdf.write("<!DOCTYPE html> \n <html> \n <head>\n" + "".join(self.__head_attr) + "</head> \n <body> \n")
             for part in self.__collections_to_print:
                 pdf.write("<br><br><br>")
                 for element in part:
@@ -148,7 +156,12 @@ class PDFGenerator:
 
     def create_pdf(self):
         with open(self.__input, "r") as html:
-            pdfkit.from_file(html, self.__output)
+            with open(self.__output, "w+b") as pdf:
+                pisaStatus = pisa.CreatePDF("".join(html).encode('utf-8'), dest=pdf)
+
+
+
+
 
 
 def main():
@@ -156,6 +169,7 @@ def main():
     parser = Parser(request)
     CDA = CDANewsExtractor(parser)
     CDA_Raport = HTMLWriter(CDA.getsplitednews(), "file.html")
+    CDA_Raport.add_utf8()
     CDA_Raport.create_htmlcode()
     CDA_PDF = PDFGenerator("file.html", "file.pdf")
     CDA_PDF.create_pdf()
