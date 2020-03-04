@@ -136,7 +136,7 @@ class HTMLWriter:
             print("UTF-8 added!")
 
     def create_htmlcode(self):
-        with open(self.__filename, "w", encoding='utf-8') as pdf:
+        with open(self.__filename, "w") as pdf:
             pdf.write("<!DOCTYPE html> \n <html> \n <head>\n" + "".join(self.__head_attr) + "</head> \n <body> \n")
             for part in self.__collections_to_print:
                 pdf.write("<br><br><br>")
@@ -157,7 +157,7 @@ class PDFGenerator:
     def create_pdf(self):
         with open(self.__input, "r") as html:
             with open(self.__output, "w+b") as pdf:
-                pisaStatus = pisa.CreatePDF("".join(html).encode('utf-8'), dest=pdf)
+                pisaStatus = pisa.CreatePDF("".join(html), dest=pdf)
 
 
 
@@ -169,6 +169,7 @@ def main():
     parser = Parser(request)
     CDA = CDANewsExtractor(parser)
     CDA_Raport = HTMLWriter(CDA.getsplitednews(), "file.html")
+    CDA_Raport.add_utf8()
     CDA_Raport.add_utf8()
     CDA_Raport.create_htmlcode()
     CDA_PDF = PDFGenerator("file.html", "file.pdf")
