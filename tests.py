@@ -57,7 +57,21 @@ class TestRequest(unittest.TestCase):
 
 
 class TestElements(unittest.TestCase):
-    pass
+
+    def test_create_Element(self):
+        try:
+            tmp = Element("test")
+        except:
+            self.fail("Error while creating Element")
+
+    def test_get_content(self):
+        tmp = Element("content")
+        self.assertEqual(tmp.getcontent(), "content")
+
+    def test_image_geturl(self):
+        img = Image("/img/picture")
+        self.assertEqual(img.getimgurl(), "/img/picture")
+
 
 if __name__ == "__main__":
     unittest.main()
